@@ -43,17 +43,18 @@ def _remove_default_headers(data: "Any") -> "Any":
     record functionality.
     """
     if isinstance(data, dict):
+        # Items in this keys_to_remove list must be lower case!
         keys_to_remove = [
-            "Content-Length",
-            "Content-Type",
-            "Date",
-            "Server",
-            "Connection",
-            "Content-Encoding",
+            "content-length",
+            "content-type",
+            "date",
+            "server",
+            "connection",
+            "content-encoding",
         ]
         for i, response in enumerate(data["responses"]):
-            for key in keys_to_remove:
-                if key in response["response"]["headers"]:
+            for key in [key for key in response["response"]["headers"]]:
+                if key.lower() in keys_to_remove:
                     del data["responses"][i]["response"]["headers"][key]
             if not response["response"]["headers"]:
                 del data["responses"][i]["response"]["headers"]
@@ -147,13 +148,20 @@ class Recorder(RequestsMock):
         headers_values = {
             key: value for key, value in requests_response.headers.items()
         }
-        responses_response = Response(
-            method=str(request.method),
-            url=str(requests_response.request.url),
-            status=requests_response.status_code,
-            body=requests_response.text,
-            headers=headers_values,
-        )
+
+        response_params = {
+            "method": str(request.method),
+            "url": str(requests_response.request.url),
+            "status": requests_response.status_code,
+            "body": requests_response.text,
+            "headers": headers_values,
+        }
+
+        # If the header has a content type then pass it in.
+        if content_type := requests_response.headers.get("content-type"):
+            response_params["content_type"] = content_type
+
+        responses_response = Response(**response_params)
         self._registry.add(responses_response)
         return requests_response
 
