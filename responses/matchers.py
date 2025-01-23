@@ -15,6 +15,7 @@ from urllib.parse import parse_qsl
 from urllib.parse import urlparse
 
 from requests import PreparedRequest
+from requests.sessions import _Files
 from urllib3.util.url import parse_url
 
 
@@ -276,7 +277,7 @@ def request_kwargs_matcher(kwargs: Optional[Mapping[str, Any]]) -> Callable[...,
 
 
 def multipart_matcher(
-    files: Mapping[str, Any], data: Optional[Mapping[str, str]] = None
+    files: _Files, data: Optional[Mapping[str, str]] = None
 ) -> Callable[..., Any]:
     """
     Matcher to match 'multipart/form-data' content-type.
